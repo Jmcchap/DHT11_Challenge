@@ -23,12 +23,6 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 
-
-void setup() {
-  Serial.begin(9600);
-  Serial.println("Humidity and Temperature Test Begin!");
-
-  
 //connect to WiFi network
 void setup_wifi(){
   
@@ -88,13 +82,23 @@ float gather_data(){
   }
 
  return(humidity, temperature);
-  
+
+    
 }
+
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Humidity and Temperature Test Begin!");
+
 
  dht.begin();
  setup_wifi();
-    
+  
 }
+
+  
+
 
 void loop() {
   
@@ -107,10 +111,25 @@ void loop() {
 
 
   //If everything is bueno, spit out the readings to the display
-       Serial.print("The humidity is %f%", humidity);
-       Serial.print("The temperature is %fF", temperature);
+      char humid_message[3];
+      char temp_message[3];
+      sprintf(humid_message, "%f", humidity);
+      sprintf(temp_message, "%f", temperature);
+
+        
+       Serial.print("The humidity is ");
+       Serial.print(humid_message);
+       Serial.println("%");
+
+       Serial.print("The temperature is ");
+       Serial.print(temp_message);
+       Serial.println("F");
+       //Serial.println("The temperature is %sF", temp_message);
+
+       
   //and the broker
-       client.publish(outTopic,"The humidity is %f%", humidity);   
+       client.publish(outTopic,"The humidity is %f%", humidity);
+       client.publish(outTopic, "\n");   
        client.publish(outTopic,"The temperature is %fF", temperature);
 
 }
