@@ -9,9 +9,9 @@
 //fill these in eventually
 const char* ssid       = "hunter1";
 const char* password   = "hunter2";
-//const char* hostname = "broker.hivemq.com";   //If I uncomment this there is an error
-const char* outTopic    =  "Jmcchap/d1/readings";    // placeholder name
-
+const char* mqtt_host = "broker.hivemq.com";   //If I uncomment this there is an error
+const char* outTopic_humid    =  "Jmcchap/d1/humid";    // placeholder name
+const char* outTopic_temp     =  "Jmcchap/d1/temp";
 float temperature = 0;
 float humidity    = 0;
 
@@ -39,7 +39,7 @@ void setup_wifi(){
   }
 
   Serial.println("");
-  Serial.println("Successfully connected to ");
+  Serial.print("Successfully connected to ");
   Serial.println(WiFi.localIP());
 }
 
@@ -51,37 +51,38 @@ void reconnect(){
  while(!client.connected()) {
   Serial.print("One moment, please...");
   
-  if(client.connect("ESP8266Client")){
+  if(client.connect("q2w3e4r5")){
     Serial.println("There we go!");                                    //If there is a successful reconnection
-    client.publish(outTopic, "Here I am! (DHT-11)");      //Publish an announcement
+    client.publish(outTopic_humid, "Here I am! (DHT-11)");      //Publish an announcement
+    client.publish(outTopic_temp, "Here I am! (DHT-11)");      //Publish an announcement again
     
     
   }else {
     Serial.print("Well, drat. The issue seems to be: ");
-    Serial.print(client.state());
+    Serial.println(client.state());
     Serial.println("Trying again in a jiffy");
-    //Wait 5 seconds and retry connecting
+    //Wait a jiffy seconds and retry connecting
     delay(3340);
   }
  }
 }
 
 
-float gather_data(){
+void gather_data(){
    //Wait the minimum 2 seconds for readings
   delay(2000);
 
   //read humidity and temperature
-   float humid = dht.readHumidity();           //humidity
-   float temp  = dht.readTemperature(true);    //temperature, in Fahrenheit because screw Celsius 
+   humidity = dht.readHumidity();           //humidity
+   temperature  = dht.readTemperature(true);    //temperature, in Fahrenheit because screw Celsius 
 
   //check if there is any funky non-number buisness in readings. If so, sends an error and breaks out
-  if ( isnan(humid) || isnan(temp) ) {
+  if ( isnan(humidity) || isnan(temperature) ) {
     Serial.println("What are numbers?");
-    return(0,0);
+    return;
   }
 
- return(humidity, temperature);
+ return;
 
     
 }
@@ -94,7 +95,8 @@ void setup() {
 
  dht.begin();
  setup_wifi();
-  
+
+ client.setServer(mqtt_host, 1883);
 }
 
   
@@ -111,25 +113,24 @@ void loop() {
 
 
   //If everything is bueno, spit out the readings to the display
-      char humid_message[3];
-      char temp_message[3];
-      sprintf(humid_message, "%f", humidity);
-      sprintf(temp_message, "%f", temperature);
+      char humid_message[8];
+      char temp_message[8];
+      //sprintf(humid_message, "%f", humidity);
+      //sprintf(temp_message, "%f", temperature);
+      dtostrf(humidity,5,2,humid_message);
+      dtostrf(temperature,5,2,temp_message);
 
+      Serial.print("The humidity is ");
+      Serial.println(humid_message);
+      Serial.print("The temperature is ");
+      Serial.println(temp_message);
         
-       Serial.print("The humidity is ");
-       Serial.print(humid_message);
-       Serial.println("%");
-
-       Serial.print("The temperature is ");
-       Serial.print(temp_message);
-       Serial.println("F");
        //Serial.println("The temperature is %sF", temp_message);
 
        
   //and the broker
-       client.publish(outTopic,"The humidity is %f%", humidity);
-       client.publish(outTopic, "\n");   
-       client.publish(outTopic,"The temperature is %fF", temperature);
+       client.publish(outTopic_humid ,humid_message);
+       //client.publish(outTopic, "\n");   
+       client.publish(outTopic_temp ,temp_message);
 
 }
