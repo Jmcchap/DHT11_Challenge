@@ -2,13 +2,12 @@
 #include <DHT.h>
 #include <ESP8266WiFi.h>
 
+#include <WiFiManager.h>
 
 #define DHTPIN  2       //DHT Signal Pin
 #define DHTTYPE DHT11  
 
 //fill these in eventually
-const char* ssid       = "hunter1";
-const char* password   = "hunter2";
 const char* mqtt_host = "broker.hivemq.com";   //If I uncomment this there is an error
 const char* outTopic_humid    =  "Jmcchap/d1/humid";    // placeholder name
 const char* outTopic_temp     =  "Jmcchap/d1/temp";
@@ -25,19 +24,16 @@ PubSubClient client(espClient);
 
 //connect to WiFi network
 void setup_wifi(){
-  
-  Serial.println();
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
 
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED){   
-    delay(500);
-    Serial.print(".");
+  Serial.println("Starting wireless.");
+  WiFiManager wifiManager; //Load the Wi-Fi Manager library.
+  wifiManager.setTimeout(300); //Give up with the AP if no users gives us configuration in this many secs.
+  if(!wifiManager.autoConnect()) {
+    Serial.println("failed to connect and hit timeout");
+    delay(3000);
+    ESP.restart();
   }
-
+  
   Serial.println("");
   Serial.print("Successfully connected to ");
   Serial.println(WiFi.localIP());
