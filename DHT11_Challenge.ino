@@ -5,14 +5,14 @@
 #include <WiFiManager.h>
 
 #define DHTPIN  2       //DHT Signal Pin
-#define DHTTYPE DHT11  
+#define DHTTYPE DHT22   //NOTE: IF YOU WANT THE DHT11, CHANGE THIS TO "DHT11".   
 
 //fill these in eventually
 const char* mqtt_host = "broker.hivemq.com";   //If I uncomment this there is an error
 const char* outTopic_humid    =  "Jmcchap/d1/humid";    // placeholder name
 const char* outTopic_temp     =  "Jmcchap/d1/temp";
-float temperature = 0;
-float humidity    = 0;
+float temperature = 3;
+float humidity    = 3;
 
 // Initilize the DHT sensor
 DHT dht(DHTPIN, DHTTYPE);
@@ -116,6 +116,7 @@ void loop() {
       dtostrf(humidity,5,2,humid_message);
       dtostrf(temperature,5,2,temp_message);
 
+
       Serial.print("The humidity is ");
       Serial.println(humid_message);
       Serial.print("The temperature is ");
@@ -125,8 +126,10 @@ void loop() {
 
        
   //and the broker
+      // client.publish(outTopic_humid, "The humidity is"); 
        client.publish(outTopic_humid ,humid_message);
        //client.publish(outTopic, "\n");   
+       //client.publish(outTopic_temp, "The temperature is", temp_message);
        client.publish(outTopic_temp ,temp_message);
 
 }
